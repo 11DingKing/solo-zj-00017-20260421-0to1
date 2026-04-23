@@ -1,40 +1,39 @@
-import { useState, useEffect } from 'react';
-import { useParams, useNavigate, Link } from 'react-router-dom';
-import StarRating from '@/components/StarRating';
-import RatingDistributionChart from '@/components/RatingDistributionChart';
-import { coursesApi, reviewsApi } from '@/services/api';
-import { useAuthStore } from '@/store/authStore';
-import type { CourseDetail, Review, CreateReviewRequest } from '@/types';
-import './CourseDetail.css';
+import { useState, useEffect } from "react";
+import { useParams, Link } from "react-router-dom";
+import StarRating from "@/components/StarRating";
+import RatingDistributionChart from "@/components/RatingDistributionChart";
+import { coursesApi, reviewsApi } from "@/services/api";
+import { useAuthStore } from "@/store/authStore";
+import type { CourseDetail, Review, CreateReviewRequest } from "@/types";
+import "./CourseDetail.css";
 
 const CourseDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const { isAuthenticated, user } = useAuthStore();
-  
+
   const [courseDetail, setCourseDetail] = useState<CourseDetail | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [newRating, setNewRating] = useState(5);
-  const [newContent, setNewContent] = useState('');
+  const [newContent, setNewContent] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [showLoginPrompt, setShowLoginPrompt] = useState(false);
 
   const loadCourseDetail = async () => {
     if (!id) return;
-    
+
     try {
       setLoading(true);
       const response = await coursesApi.getById(id);
       setCourseDetail(response.data);
-      setError('');
-      
+      setError("");
+
       if (response.data.userReview) {
         setNewRating(response.data.userReview.rating);
-        setNewContent(response.data.userReview.content || '');
+        setNewContent(response.data.userReview.content || "");
       }
     } catch (err) {
-      setError('加载课程详情失败');
+      setError("加载课程详情失败");
       console.error(err);
     } finally {
       setLoading(false);
@@ -55,7 +54,7 @@ const CourseDetail = () => {
 
     try {
       setSubmitting(true);
-      
+
       const request: CreateReviewRequest = {
         courseId: id,
         rating: newRating,
@@ -64,9 +63,9 @@ const CourseDetail = () => {
 
       await reviewsApi.createOrUpdate(request);
       loadCourseDetail();
-      setError('');
+      setError("");
     } catch (err) {
-      setError('提交评价失败');
+      setError("提交评价失败");
       console.error(err);
     } finally {
       setSubmitting(false);
@@ -74,7 +73,7 @@ const CourseDetail = () => {
   };
 
   const handleDeleteReview = async (reviewId: string) => {
-    if (!window.confirm('确定要删除这条评价吗？')) {
+    if (!window.confirm("确定要删除这条评价吗？")) {
       return;
     }
 
@@ -82,25 +81,25 @@ const CourseDetail = () => {
       await reviewsApi.delete(reviewId);
       loadCourseDetail();
     } catch (err) {
-      setError('删除评价失败');
+      setError("删除评价失败");
       console.error(err);
     }
   };
 
   const canDeleteReview = (review: Review) => {
     if (!user) return false;
-    if (user.role === 'Admin') return true;
+    if (user.role === "Admin") return true;
     return review.userId === user.id;
   };
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
-    return date.toLocaleDateString('zh-CN', {
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-      hour: '2-digit',
-      minute: '2-digit',
+    return date.toLocaleDateString("zh-CN", {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -124,7 +123,7 @@ const CourseDetail = () => {
     );
   }
 
-  const { course, reviews, ratingDistribution, hasUserReviewed, userReview } = courseDetail;
+  const { course, reviews, ratingDistribution, hasUserReviewed } = courseDetail;
 
   return (
     <div className="course-detail-page">
@@ -141,13 +140,17 @@ const CourseDetail = () => {
           <span>📅 {course.semester}</span>
           <span>🎓 {course.credits}学分</span>
         </div>
-        
+
         <div className="course-rating-summary">
           {course.averageRating !== null ? (
             <>
               <StarRating rating={course.averageRating} size="large" readonly />
-              <span className="average-rating">{course.averageRating.toFixed(1)}</span>
-              <span className="review-count">({course.reviewCount} 条评价)</span>
+              <span className="average-rating">
+                {course.averageRating.toFixed(1)}
+              </span>
+              <span className="review-count">
+                ({course.reviewCount} 条评价)
+              </span>
             </>
           ) : (
             <span className="no-rating">暂无评分</span>
@@ -158,13 +161,16 @@ const CourseDetail = () => {
       <div className="review-form-section">
         <div className="review-form card">
           <h3 className="review-form-title">
-            {hasUserReviewed ? '修改我的评价' : '发表评价'}
+            {hasUserReviewed ? "修改我的评价" : "发表评价"}
           </h3>
 
           {showLoginPrompt && (
             <div className="alert alert-error">
               请先
-              <Link to="/login" style={{ marginLeft: 8, color: 'var(--primary-color)' }}>
+              <Link
+                to="/login"
+                style={{ marginLeft: 8, color: "var(--primary-color)" }}
+              >
                 登录
               </Link>
               后再发表评价
@@ -198,7 +204,11 @@ const CourseDetail = () => {
               onClick={handleSubmitReview}
               disabled={submitting || !isAuthenticated}
             >
-              {submitting ? '提交中...' : (hasUserReviewed ? '修改评价' : '发表评价')}
+              {submitting
+                ? "提交中..."
+                : hasUserReviewed
+                  ? "修改评价"
+                  : "发表评价"}
             </button>
           </div>
         </div>
@@ -209,9 +219,7 @@ const CourseDetail = () => {
       )}
 
       <div className="reviews-section">
-        <h2 className="section-title">
-          全部评价 ({reviews.length})
-        </h2>
+        <h2 className="section-title">全部评价 ({reviews.length})</h2>
 
         {reviews.length === 0 ? (
           <div className="empty-state">
@@ -228,16 +236,20 @@ const CourseDetail = () => {
                       {review.userNickname.charAt(0)}
                     </div>
                     <div>
-                      <div className="review-nickname">{review.userNickname}</div>
-                      <div className="review-time">{formatDate(review.createdAt)}</div>
+                      <div className="review-nickname">
+                        {review.userNickname}
+                      </div>
+                      <div className="review-time">
+                        {formatDate(review.createdAt)}
+                      </div>
                     </div>
                   </div>
-                  
+
                   {canDeleteReview(review) && (
                     <button
                       className="btn btn-secondary"
                       onClick={() => handleDeleteReview(review.id)}
-                      style={{ fontSize: 12, padding: '4px 8px' }}
+                      style={{ fontSize: 12, padding: "4px 8px" }}
                     >
                       删除
                     </button>

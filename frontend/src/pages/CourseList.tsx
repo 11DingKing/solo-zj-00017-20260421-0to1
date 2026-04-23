@@ -8,7 +8,7 @@ import './CourseList.css';
 
 const CourseList = () => {
   const navigate = useNavigate();
-  const { isAuthenticated, user } = useAuthStore();
+  const { user } = useAuthStore();
   
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
